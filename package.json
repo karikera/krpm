@@ -1,0 +1,29 @@
+{
+  "name": "krpm",
+  "version": "1.0.0",
+  "description": "My C/C++ package manager",
+  "main": "index.js",
+  "bin": "run",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karikera/krpm.git"
+  },
+  "keywords": [
+    "vs",
+    "publisher"
+  ],
+  "author": "ruakr <karikera3@hotmail.com> (http://rua.kr)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/karikera/krpm/issues"
+  },
+  "homepage": "https://github.com/karikera/krpm#readme",
+  "dependencies": {
+    "globby": "^10.0.1",
+    "krspawn": "^1.0.1",
+    "simple-git": "^1.122.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.6.8"
+  }
+}

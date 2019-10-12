@@ -1,0 +1,10 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"lib": [
+			"esnext"
+		],
+		"module": "commonjs",
+		"target": "esnext"
+	}
+}
