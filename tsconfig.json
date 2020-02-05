@@ -6,6 +6,8 @@
 		],
 		"module": "commonjs",
 		"target": "esnext",
-		"sourceMap": true
+		"sourceMap": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true
 	}
 }

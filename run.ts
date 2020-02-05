@@ -1,73 +1,100 @@
 #!/usr/bin/env node
 
-import path = require('path');
-import { hostPlatform, options, Target, publish } from ".";
+import { Options } from ".";
+import { TargetResolved } from "./target";
 
-
-function setOption(runs:string[]):void
+interface CommandFunc extends Function
 {
-	for (var i=0;i<runs.length;)
+	(options:Options):Promise<void>|void;
+}
+type Command = [string, CommandFunc];
+interface Commands
+{
+	[key:string]:Commands|Command|undefined;
+	command?:Command;
+}
+
+const commands:Commands = {
+	build: ['build', async (options:Options)=>{
+		const target = await TargetResolved.fromCurrentDirectory(options);
+		await target.build();
+	}],
+	commit:['git commit', async (options:Options)=>{
+		const target = await TargetResolved.fromCurrentDirectory(options);
+		if (!options.commitMessage) throw 'Need commit message';
+		await target.gitCommit(options.commitMessage);
+	}],
+	push: ['git push', async (options:Options)=>{
+		const target = await TargetResolved.fromCurrentDirectory(options);
+		await target.gitPush();
+	}],
+};
+
+function getCommand():[CommandFunc, Options]
+{
+	let cmdline = '';
+	let cmds:Command|Commands|undefined = commands;
+	const options:Options = {
+		nobuild:false,
+		x86Only:false,
+		x64Only:false,
+		jsOnly:false,
+		ignoreNotFound:false,
+	};
+	const argv = process.argv;
+	if (argv.length < 2)
 	{
-		const cmd = runs[i];
+	}
+	for (var i=2;i<argv.length;)
+	{
+		const cmd = argv[i++];
 		if (cmd.startsWith('-'))
 		{
-			runs.splice(i, 1);
 			switch(cmd)
 			{
 			case '--nobuild': options.nobuild = true; break;
 			case '--x86': options.x86Only = true; break;
 			case '--x64': options.x64Only = true; break;
 			case '--js': options.jsOnly = true; break;
-			case '--ignore-not-found': options.ignoreNotFound = true;
+			case '--ignore-not-found': options.ignoreNotFound = true; break;
 			case '-m': 
-				const value = runs.splice(i, 1)[0];
+				const value = argv[i++];
 				options.commitMessage = value;
 				break;
 			}
 		}
 		else
 		{
-			i++;
+			cmdline += cmd;
+			cmdline += ' ';
+
+			if (cmd === 'command' || cmds instanceof Function)
+			{
+				throw Error('unknown command: '+cmdline);
+			}
+			cmds = cmds[cmd];
+			if (!cmds)
+			{
+				throw Error('unknown command: '+cmdline);
+			}
 		}
 	}
+	if (!(cmds instanceof Array))
+	{
+		cmds = cmds.command;
+		if (!cmds) throw 'unknown command: '+cmdline;
+	}
+	return [cmds[1], options];
 }
 
-const commands = {
-	async publish()
-	{
-		try
-		{	
-			const target:Target = require(path.resolve('krbuild'));
-			await publish(target);
-		}
-		catch (err)
-		{
-			throw err;
-		}
-	},
-};
-
 (async()=>{
-	if (!hostPlatform)
-	{
-		console.log('Unsupported host platform');
-		return;
+	const [cmd, options] = getCommand();
+	try
+	{	
+		await cmd(options);
 	}
-	const runs = process.argv.slice(2);
-	setOption(runs);
-	if (runs.length === 0)
+	catch (err)
 	{
-		console.error("no command found");
-	}
-	for (const cmd of runs)
-	{
-		if (cmd in commands)
-		{
-			await commands[cmd]();
-		}
-		else
-		{
-			console.log(`Not exists command ${cmd}`);
-		}
+		throw err;
 	}
 })().catch(console.error);

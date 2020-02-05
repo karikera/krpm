@@ -7,10 +7,21 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program",
+			"name": "Build ChakraCore",
 			"program": "${workspaceFolder}\\run.js",
-			"cwd": "D:\\Projects\\git\\third\\v8",
-			"args": ["publish"],
+			"cwd": "D:\\Downloads\\ME\\3rd\\ChakraCore",
+			"console": "integratedTerminal",
+			"outFiles": [
+				"${workspaceFolder}/**/*.js"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Build ChakraCore-Debugger",
+			"program": "${workspaceFolder}\\run.js",
+			"cwd": "D:\\Downloads\\ME\\3rd\\ChakraCore-Debugger",
+			"console": "integratedTerminal",
 			"outFiles": [
 				"${workspaceFolder}/**/*.js"
 			]

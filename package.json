@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "My C/C++ package manager",
   "main": "index.js",
-  "bin": "run",
+  "bin": "run.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/karikera/krpm.git"
@@ -20,10 +20,11 @@
   "homepage": "https://github.com/karikera/krpm#readme",
   "dependencies": {
     "globby": "^10.0.1",
-    "krspawn": "^1.0.1",
-    "simple-git": "^1.122.0"
+    "krspawn": "^1.0.2",
+    "simple-git": "^1.126.0",
+    "source-map-support": "^0.5.16"
   },
   "devDependencies": {
-    "@types/node": "^12.6.8"
+    "@types/node": "^12.12.12"
   }
 }

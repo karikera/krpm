@@ -6,7 +6,14 @@ import globby = require('globby');
 
 export const unaccessedFileMap = new Set<string>();
 
-export function prom<T>(fn:(cb:(err:Error, T?:any)=>void)=>void):Promise<T>
+export function wait<T>(fn:(cb:(arg?:T)=>void)=>void):Promise<T>
+{
+	return new Promise<T>((resolve, reject)=>fn((data)=>{
+		resolve(data);
+	}));
+}
+
+export function prom<T>(fn:(cb:(err:Error, arg?:T)=>void)=>void):Promise<T>
 {
 	return new Promise<T>((resolve, reject)=>fn((err, data)=>{
 		if (err) reject(err);
@@ -40,20 +47,6 @@ export function checkModified(output:string, inputs:string[]):boolean
 		if (outmtime < mtime) return true;
 	}
 	return false;
-}
-
-export function exec(program:string, args:string[]):void
-{
-	console.log(program+' '+args.join(' '));
-	var obj = child_process.spawnSync(program, args, { stdio: [0, 1, 2] });
-	if (obj.error)
-	{
-		throw obj.error;
-	}
-	if (obj.status !== 0)
-	{
-		throw Error(obj.status+'');
-	}
 }
 
 export function mkdir(dir:string):boolean
@@ -175,4 +168,10 @@ export function copyAll(src:string, dest:string, patterns:string[]|string):void
 		if (stat.isDirectory()) continue;
 		copy(file, destpath);
 	}
+}
+
+export function copyAuto(from:string, to:string, pattern?:string[]|string):void
+{
+	if (pattern) return copyAll(from ,to, pattern);
+	return copy(from, to);
 }
