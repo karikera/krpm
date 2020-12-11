@@ -160,8 +160,7 @@ export class Build
 	{
 		mkdir(path.dirname(out));
 		access(out);
-		if (!checkModified(out, libs))
-			return;
+		if (!checkModified(out, libs)) return;
 		
 		if (this.platform == Platform.js)
 		{

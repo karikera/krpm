@@ -27,7 +27,8 @@ export class TargetResolved implements Target
 	readonly prebuild?:()=>Promise<void>|void;
 	readonly postbuild?:()=>Promise<void>|void;
 	readonly files:any[];
-	readonly each:(config:Build)=>Promise<void>|void;
+    readonly each:(config:Build)=>Promise<void>|void;
+    readonly cleanIgnoresParsed:[string,string][];
 
 	constructor(target:Target, public readonly options:Options)
 	{
@@ -55,6 +56,36 @@ export class TargetResolved implements Target
         this.postbuild = target.postbuild;
         this.files = target.files;
         this.each = target.each;
+        this.cleanIgnoresParsed = [];
+        if (target.cleanIgnores)
+        {
+            for (let t of target.cleanIgnores)
+            {
+                if (t.startsWith('!'))
+                {
+                    t = t.substr(1);
+                    if (t.startsWith('/') || t.startsWith('\\'))
+                    {
+                        this.cleanIgnoresParsed.push(['', t]);
+                    }
+                    else
+                    {
+                        this.cleanIgnoresParsed.push(['', '/**/'+t]);
+                    }
+                }
+                else
+                {
+                    if (t.startsWith('/') || t.startsWith('\\'))
+                    {
+                        this.cleanIgnoresParsed.push(['!', t]);
+                    }
+                    else
+                    {
+                        this.cleanIgnoresParsed.push(['!', '/**/'+t]);
+                    }
+                }
+            }
+        }
     }
     
     async build():Promise<void>
@@ -62,8 +93,13 @@ export class TargetResolved implements Target
         try
         {
             console.log(`build ${this.name}`);
-                
-            await unaccess([this.exportDir+"/**","!"+this.exportDir+'/lib/**']);
+            
+            await unaccess([
+                this.exportDir+"/**",
+                '!'+this.exportDir+'/lib/**',
+                '!'+this.exportDir+'/.git',
+                ...this.cleanIgnoresParsed.map(([not, path])=>not + this.exportDir + path)
+            ]);
             
             mkdir(this.exportDir);
             mkdir(this.exportDir + '/lib');

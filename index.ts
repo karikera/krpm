@@ -5,13 +5,16 @@ require('source-map-support').install();
 
 const vcbin:string|undefined = process.env.vcbin;
 
+export type PlatformName = 'x86'|'x64'|'js';
+type PlatformNormalName = 'x86'|'x64'|'Emscripten';
+type PlatformLongName = 'Win32'|'x64'|'Emscripten';
 
 export interface Platform
 {
-	name:string;
+	name:PlatformNormalName;
 	lib:string;
-	shortName:string;
-	longName:string;
+	shortName:PlatformName;
+	longName:PlatformLongName;
 }
 
 export interface Configuration
@@ -20,11 +23,11 @@ export interface Configuration
 	postfix:string;
 }
 
-function makePlatform(args:{name:string, longName?:string, shortName?:string, bits?:number}):Platform
+function makePlatform(args:{
+	name:PlatformNormalName, longName:PlatformLongName, shortName:PlatformName
+}):Platform
 {
 	const platform:Platform = <Platform>args;
-	if (!platform.shortName) platform.shortName = platform.name;
-	if (!platform.longName) platform.longName = platform.name;
 	if (!platform.lib) platform.lib = vcbin + '/' + platform.shortName + '/lib';
 	return platform;
 }
@@ -32,25 +35,27 @@ function makePlatform(args:{name:string, longName?:string, shortName?:string, bi
 export const Platform = {
 	x86:makePlatform({
 		name: 'x86',
-		longName: 'Win32'
+		longName: 'Win32',
+		shortName: 'x86',
 	}),
 	x64:makePlatform({
-		name: 'x64'
+		name: 'x64',
+		longName: 'x64',
+		shortName: 'x64',
 	}),
 	js:makePlatform({
 		name: 'Emscripten',
+		longName: 'Emscripten',
 		shortName: 'js',
-		longName: 'Emscripten'
 	}),
 };
-
-export type PlatformName = keyof typeof Platform;
 
 export interface Target
 {
 	configurations?:Configuration[];
 	platforms?:PlatformName[];
 	platformBasedHeader?:boolean;
+	cleanIgnores?:string[];
 	name?:string;
 	libdir?:string;
 	static?:boolean;

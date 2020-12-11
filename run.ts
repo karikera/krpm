@@ -14,6 +14,13 @@ interface Commands
 	command?:Command;
 }
 
+class UnknownCommand
+{
+	constructor(public cmdline:string)
+	{
+	}
+}
+
 const commands:Commands = {
 	build: ['build', async (options:Options)=>{
 		const target = await TargetResolved.fromCurrentDirectory(options);
@@ -70,31 +77,35 @@ function getCommand():[CommandFunc, Options]
 
 			if (cmd === 'command' || cmds instanceof Function)
 			{
-				throw Error('unknown command: '+cmdline);
+				throw new UnknownCommand(cmdline);
 			}
 			cmds = cmds[cmd];
 			if (!cmds)
 			{
-				throw Error('unknown command: '+cmdline);
+				throw new UnknownCommand(cmdline);
 			}
 		}
 	}
 	if (!(cmds instanceof Array))
 	{
 		cmds = cmds.command;
-		if (!cmds) throw 'unknown command: '+cmdline;
+		if (!cmds) throw new UnknownCommand(cmdline);
 	}
 	return [cmds[1], options];
 }
 
 (async()=>{
 	const [cmd, options] = getCommand();
-	try
-	{	
-		await cmd(options);
-	}
-	catch (err)
+	await cmd(options);
+})().catch(err=>{
+	if (err instanceof UnknownCommand)
 	{
-		throw err;
+		console.error(`Unknown command: krpm ${err.cmdline}`);
+		for (const name in commands)
+		{
+			console.log(`krpm ${name}`);
+		}
+		return;
 	}
-})().catch(console.error);
+	console.error(err);
+});

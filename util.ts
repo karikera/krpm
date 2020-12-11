@@ -29,6 +29,26 @@ export function extFilter(ext:string):(str:string)=>boolean
 	}
 }
 
+export function checkSame(output:string, input:string):boolean
+{
+	try
+	{
+		const stat = fs.statSync(output);
+		var outsize = stat.size;
+		var outmtime = +stat.mtime;
+	}
+	catch(err)
+	{
+		if (err.code !== 'ENOENT')
+			throw err;
+		return false;
+	}
+	const istat = fs.statSync(input);
+	if (+istat.mtime != outmtime) return false;
+	if (istat.size != outsize) return false;
+	return true;
+}
+
 export function checkModified(output:string, inputs:string[]):boolean
 {
 	try
@@ -44,7 +64,7 @@ export function checkModified(output:string, inputs:string[]):boolean
 	for(var input of inputs)
 	{
 		var mtime = +fs.statSync(input).mtime;
-		if (outmtime < mtime) return true;
+		if (mtime > outmtime) return true;
 	}
 	return false;
 }
@@ -78,7 +98,7 @@ export function mkdir(dir:string):boolean
 export function copy(src:string, dest:string):void
 {
 	access(dest);
-	if (!checkModified(dest, [src])) return;
+	if (checkSame(dest, src)) return;
 
 	console.log("copy " + src + " " + dest);
 	try
